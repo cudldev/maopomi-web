@@ -289,6 +289,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 .pomi-fishing .fp-floater{position:absolute;z-index:3;top:38%;left:50%;transform:translateX(-50%);max-width:90%;padding:9px 16px;border-radius:24px;background:var(--fp-paper);color:var(--fp-ink);box-shadow:0 3px 8px #50302024;text-align:center;pointer-events:none;animation:fp-float 1.6s ease-out both}
 @keyframes fp-float{0%{opacity:0;translate:0 8px}12%,72%{opacity:1}100%{opacity:0;translate:0 -20px}}
 @media(prefers-reduced-motion:reduce){.pomi-fishing .fp-floater{animation:none}}
+.pomi-fishing[data-fishing-pull="strong"] .fp-gauge{filter:drop-shadow(0 2px 5px #a75b3550)}
+.pomi-fishing[data-fishing-beat="bite"] .fp-pond-action{font-size:23px;color:#693c23}
+.pomi-fishing[data-fishing-beat="landing"] .fp-pond-action{font-size:23px;color:#466547}
 </style>
 <section class="pomi-fishing" hidden data-fishing-panel aria-labelledby="fp-title">
  <div class="fp-world">
@@ -1615,13 +1618,13 @@ window.houseEconomy??=(parent!==window&&parent.houseEconomy)||createHouseEconomy
 // Deterministic, UI-free fishing prototype. Inputs are commands; time advances only in stepFishing.
 // Rarity adds resistance and a little distance while keeping each fight short.
 const FISH_SPECIES = Object.freeze([
-  { species: 'Minnow', rarity: 'common', safeLow: 18, safeHigh: 82, pull: 8, interval: 3.2, startDistance: 4 },
-  { species: 'Silver carp', rarity: 'uncommon', safeLow: 24, safeHigh: 76, pull: 15, interval: 2.4, startDistance: 5 },
-  { species: 'Moon koi', rarity: 'rare', safeLow: 30, safeHigh: 70, pull: 23, interval: 1.8, startDistance: 6 },
+  { species: 'Minnow', rarity: 'common', safeLow: 18, safeHigh: 82, pull: 8, interval: 1.2, startDistance: 3 },
+  { species: 'Silver carp', rarity: 'uncommon', safeLow: 24, safeHigh: 76, pull: 15, interval: 1.05, startDistance: 3.6 },
+  { species: 'Moon koi', rarity: 'rare', safeLow: 30, safeHigh: 70, pull: 23, interval: .9, startDistance: 4.2 },
 ]);
 // Strong pulls demand a clear release; gentle phases are the reeling opportunity.
 const FISH_PULL_LEVELS = Object.freeze([{name:'Gentle',multiplier:.35},{name:'Steady',multiplier:.9},{name:'Strong',multiplier:1.6,tensionSurge:24}]);
-const FISH_TUNING = Object.freeze({ fixedStep: .05, noticeRadius: .28, noticeCos: .5, approachSpeed: .18, nibbleTime: .65, biteWindow: 1.25, dangerGrace: .85, maxFrame: .25, releaseSpeed: 12, reelSpeed: 19, distanceSpeed: 2.4, pullbackSpeed: .06, maxDistanceMultiplier:1.3, pullWarning: .65 });
+const FISH_TUNING = Object.freeze({ fixedStep: .05, noticeRadius: .28, noticeCos: .5, approachSpeed: .35, nibbleTime: .3, biteWindow: 1.25, dangerGrace: .85, maxFrame: .25, releaseSpeed: 19.2, reelSpeed: 30.4, distanceSpeed: 4.5, pullbackSpeed: .06, maxDistanceMultiplier:1.3, pullWarning: .4 });
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function rng(state){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296;}
 function fish(id,species,x,y){return {id,...species,x,y,visible:true,available:true,phase:'swimming',roam:0};}
@@ -1673,7 +1676,7 @@ function advance(s,dt){
    // Releasing always relaxes the line at the same rate. Fish resistance only
    // increases the upward speed while the player reels against it.
    const pull=FISH_PULL_LEVELS[s.pullLevel];
-   const resistance=f.pull*pull.multiplier+(pull.tensionSurge||0);
+   const resistance=(f.pull*pull.multiplier+(pull.tensionSurge||0))*1.6;
    const rate=s.reeling?FISH_TUNING.reelSpeed+resistance:-FISH_TUNING.releaseSpeed;
    s.tension=clamp(s.tension+rate*dt,0,100);
    s.danger=s.tension<f.safeLow?'slack':s.tension>f.safeHigh?'tight':null;
@@ -1685,6 +1688,87 @@ function advance(s,dt){
  }
 }
 function stepFishing(s,dt){if(s.paused||!Number.isFinite(dt)||dt<=0)return s;s.accumulator+=Math.min(dt,FISH_TUNING.maxFrame);while(s.accumulator+1e-10>=FISH_TUNING.fixedStep){advance(s,FISH_TUNING.fixedStep);s.accumulator-=FISH_TUNING.fixedStep;}return s;}
+
+// Local, bounded fishing presentation. Uses simulation time so pause/back never
+// advance a landing or replay effects after an inactive view returns.
+function createFishingEffects({reducedMotion=false}={}){
+ let previous='idle',previousPull=0,castAt=-Infinity,hookAt=-Infinity,catchAt=-Infinity,point={x:.5,y:.5};
+ let reelAngle=0,lastTime=0;
+ const bursts=[];
+ const landing=s=>!reducedMotion&&s.phase==='caught'&&s.time-catchAt<.65;
+ function observe(s,locate){
+  if(s.phase==='fight'&&s.reeling&&!reducedMotion)reelAngle=(reelAngle+Math.max(0,s.time-lastTime)*18)%(Math.PI*2);
+  lastTime=s.time;
+  if(s.lure&&s.phase!=='caught'&&s.phase!=='escaped')point=locate(s.lure);
+  if(s.phase!==previous){
+   if(s.phase==='approach'){castAt=s.time;bursts.length=0;emit(s,'cast');}
+   if(s.phase==='bite')emit(s,'bite');
+   if(s.phase==='fight'){hookAt=s.time;emit(s,'hook');}
+   if(s.phase==='caught'){catchAt=s.time;emit(s,'land');}
+   if(s.phase==='escaped')emit(s,'snap');
+   previous=s.phase;
+  }
+  if(s.phase==='fight'&&s.pullLevel===2&&previousPull!==2)emit(s,'surge');
+  previousPull=s.pullLevel;
+  while(bursts.length&&s.time-bursts[0].at>.7)bursts.shift();
+ }
+ function emit(s,kind){bursts.push({at:s.time,kind,...point});if(bursts.length>8)bursts.shift();}
+ function rod(ctx,w,h,s){
+  const fight=s.phase==='fight',strain=fight?s.tension/100:.08;
+  const kick=reducedMotion?0:Math.max(0,1-(s.time-hookAt)/.22)*.04+Math.sin(Math.min(1,Math.max(0,(s.time-castAt)/.2))*Math.PI)*.035;
+  const tremor=!reducedMotion&&fight&&s.pullLevel===2?Math.sin(s.time*35)*.004:0;
+  const base={x:w*.96,y:h*.94},tip={x:w*(.85-strain*.035+tremor),y:h*(.65+strain*.065-kick)};
+  ctx.save();ctx.lineCap='round';
+  // Warm wooden blank with a cream rim, tapering toward the flexible tip.
+  for(const [colour,width]of [['#fff0ce',17],['#966137',11],['#d7a565',5]]){
+   ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(base.x,base.y);
+   ctx.quadraticCurveTo(w*(.89-strain*.02),h*.78,tip.x,tip.y);ctx.stroke();
+  }
+  ctx.strokeStyle='#684631';ctx.lineWidth=20;ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(w*.925,h*.885);ctx.stroke();
+  // A visible spool and rotating crank respond directly to held reel input.
+  const rx=w*.925,ry=h*.855,spin=reducedMotion?0:reelAngle;
+  ctx.fillStyle='#ead5ad';ctx.strokeStyle='#765337';ctx.lineWidth=4;
+  ctx.beginPath();ctx.ellipse(rx,ry,18,24,-.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+Math.cos(spin)*25,ry+Math.sin(spin)*25);ctx.stroke();
+  ctx.fillStyle='#765337';ctx.beginPath();ctx.arc(rx+Math.cos(spin)*25,ry+Math.sin(spin)*25,6,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#fff0ce';ctx.lineWidth=3;ctx.beginPath();ctx.arc(tip.x,tip.y,5,0,Math.PI*2);ctx.stroke();ctx.restore();
+  return tip;
+ }
+ function draw(ctx,w,h,s,locate){
+  ctx.save();
+  // Small wake lines and a darting splash tie safe reeling to visible movement.
+  if(s.phase==='fight'){
+   const p=locate(s.lure),x=p.x*w,y=p.y*h;
+   const pulse=reducedMotion?0:Math.sin(s.time*(s.pullLevel===2?28:12))*5;
+   ctx.strokeStyle=s.pullLevel===2?'#fff1d5':'#e0f3e8';ctx.lineWidth=3;
+   for(let i=0;i<3;i++){ctx.globalAlpha=.55-i*.12;ctx.beginPath();ctx.ellipse(x,y+i*10,22+i*13+pulse,7+i*4,0,.15,Math.PI-.15);ctx.stroke();}
+   ctx.globalAlpha=1;
+  }
+  if(!reducedMotion)for(const b of bursts){
+   const age=s.time-b.at,t=Math.min(1,age/.65);if(t>=1)continue;
+   const x=b.x*w,y=b.y*h,big=['hook','land','surge'].includes(b.kind);
+   ctx.globalAlpha=1-t;ctx.strokeStyle='#f6f7dd';ctx.lineWidth=3;
+   for(let ring=0;ring<2;ring++){ctx.beginPath();ctx.ellipse(x,y,15+t*(big?90:55)+ring*10,7+t*22+ring*4,0,0,Math.PI*2);ctx.stroke();}
+   ctx.fillStyle=b.kind==='surge'?'#f9d89e':'#edf8ec';
+   for(let i=0;i<(big?10:6);i++){
+    const angle=i*2.399,reach=(big?65:40)*t;
+    ctx.beginPath();ctx.ellipse(x+Math.cos(angle)*reach,y+Math.sin(angle)*reach*.45-Math.sin(t*Math.PI)*40,3,6,angle,0,Math.PI*2);ctx.fill();
+   }
+  }
+  if(landing(s)){
+   const t=Math.max(0,(s.time-catchAt)/.65),x=point.x*w+(w*.52-point.x*w)*t,y=point.y*h-Math.sin(t*Math.PI)*h*.15;
+   ctx.globalAlpha=1;ctx.save();ctx.translate(x,y);ctx.rotate(-.4+t*.8);ctx.scale(1.5+t*1.8,1.5+t*1.8);
+   ctx.fillStyle=s.result?.rarity==='rare'?'#d8c7eb':s.result?.rarity==='uncommon'?'#e9d5a1':'#c5dfcf';
+   ctx.strokeStyle='#fff5de';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,30,15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.beginPath();ctx.moveTo(-24,0);ctx.lineTo(-43,-14);ctx.lineTo(-43,14);ctx.closePath();ctx.fill();ctx.stroke();
+   ctx.fillStyle='#503c31';ctx.beginPath();ctx.arc(17,-3,3,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  ctx.restore();
+ }
+ return {observe,rod,draw,landing,lure:(s,p)=>{const t=Math.max(0,Math.min(1,(s.time-castAt)/.18));return reducedMotion||t>=1?p:{x:.85+(p.x-.85)*t,y:.66+(p.y-.66)*t-Math.sin(t*Math.PI)*.1};},snapshot:s=>({landing:landing(s),burstCount:bursts.length,castAt,hookAt,catchAt}),
+  finishLanding:()=>{catchAt=-Infinity;},recover:s=>{previous=s.phase;catchAt=-Infinity;bursts.length=0;},
+  setReducedMotion:value=>{reducedMotion=!!value;}};
+}
 
 // Local, deterministic prototype economy. Callers persist encodeFishCollection
 // after every successful operation; no DOM, clock, random source or storage here.
@@ -1877,7 +1961,8 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  const now=()=>Math.max(0,Math.floor(Date.now()));
  let household=economy.snapshot(),collection=structuredClone(household.fishing.collection),pond=normalizePond(household.fishing.pond),storageMode=economy.status().mode,lastSaved=null;
  function normalizePond(value){const next=structuredClone(value);next.arrivalIntervalMs??=45_000;next.returnBonus??=createFishingReturnBonus(now());return next;}
- const state=createFishing(17),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ const state=createFishing(17),reduced=matchMedia('(prefers-reduced-motion: reduce)'),effects=createFishingEffects({reducedMotion:reduced.matches});
+ reduced.addEventListener('change',()=>{effects.setReducedMotion(reduced.matches);render();schedule();});
  let active=!!standalone,last=0,raf=0,ready=0,heldPointer=null,heldKey=null,ignoreClick=false,pointerPhase=null,previousStatus='',previousPhase='idle',resultOpen=false,escapeAt=-Infinity,escapePoint=null,lastLurePoint=null,bookOpen=false,handledCatch=false,pondTimer=0;
  const backdrop=new Image();backdrop.onload=()=>draw();backdrop.src=FISHING_ASSETS.pond;
  function storageText(){return storageMode==='saved'?'Journal and wallet saved on this device.':storageMode==='session'?'This visit only · saving is unavailable.':storageMode==='protected'||storageMode==='conflict'?'Existing household save preserved · this visit only.':'Could not save. Retry, or choose “Use this visit only”.';}
@@ -1905,7 +1990,7 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  }
  function primary(event){
   if(resultOpen||bookOpen)return;
-  if(state.paused){resume();return;}if(ready>0)return;
+  if(state.paused){resume();return;}if(ready>0||effects.landing(state))return;
   if(['idle','caught','escaped'].includes(state.phase)){handledCatch=false;if(!state.fish.some(f=>f.available)){state.message='The pond is quiet. New fish will arrive soon.';}else{escapeAt=-Infinity;castFishing(state,castPoint(event));}}
   else if(state.phase==='bite'){hookFishing(state);clear();}
   else if(state.phase==='fight'&&mode.value==='toggle')reelFishing(state,!state.reeling);
@@ -1914,8 +1999,8 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  main.addEventListener('click',e=>{const blocked=e.detail>0&&(ignoreClick||pointerPhase&&pointerPhase!==state.phase);pointerPhase=null;ignoreClick=false;if(!blocked)primary(e);});
  main.addEventListener('pointerdown',e=>{
   if(e.button>0||heldPointer!==null)return;ignoreClick=false;pointerPhase=state.phase;
-  if(ready>0||['approach','nibble'].includes(state.phase)||bookOpen||resultOpen)ignoreClick=true;
-  if(state.phase==='fight'&&!state.paused&&ready<=0&&mode.value==='hold'&&!bookOpen&&!resultOpen){e.preventDefault();heldPointer=e.pointerId;if(e.isTrusted)main.setPointerCapture?.(e.pointerId);reelFishing(state,true);render();}
+  if(ready>0||['approach','nibble'].includes(state.phase)||bookOpen||resultOpen||effects.landing(state))ignoreClick=true;
+  if(state.phase==='fight'&&!state.paused&&ready<=0&&mode.value==='hold'&&!bookOpen&&!resultOpen&&!effects.landing(state)){e.preventDefault();heldPointer=e.pointerId;if(e.isTrusted)main.setPointerCapture?.(e.pointerId);reelFishing(state,true);render();}
  });
  function releasePointer(e){if(heldPointer===e.pointerId){clear();ignoreClick=true;render();}}
  for(const name of ['pointerup','pointercancel','lostpointercapture'])main.addEventListener(name,releasePointer);
@@ -1953,11 +2038,14 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
   q('[data-fishing-close]').addEventListener('click',()=>house.houseStudy.closeGame());
  }else q('[data-fishing-close]').hidden=true;
  function away(){if(active){setPause(true);rememberPositions();pond.lastVisit=Math.max(pond.lastVisit,now());persist(collection);}}window.addEventListener('blur',away);document.addEventListener('visibilitychange',()=>{if(document.hidden)away();else if(active){refreshPond(true);pondTick();}});
- function scenePoint(f){const moving=state.phase==='fight'&&(f.id===state.targetId||f===state.lure),r=moving?Math.min(1.3,state.distance/state.startDistance):1;return{x:Math.max(.14,Math.min(.86,.12+(moving ? .55+(f.x-.55)*r : f.x)*.76)),y:Math.max(.31,Math.min(.74,.30+(moving ? .88+(f.y-.88)*r : f.y)*.44))};}
+ function scenePoint(f){const moving=state.phase==='fight'&&(f.id===state.targetId||f===state.lure),r=moving?Math.min(1.3,state.distance/state.startDistance):1,dart=moving&&!reduced.matches?Math.sin(state.time*(state.pullLevel===2?18:9))*(state.pullLevel===2?.018:.006):0;return{x:Math.max(.14,Math.min(.86,.12+(moving ? .55+(f.x-.55)*r : f.x)*.76+dart)),y:Math.max(.31,Math.min(.74,.30+(moving ? .88+(f.y-.88)*r : f.y)*.44))};}
  function arcPoint(value){const a=(-123.367+value*.66734)*Math.PI/180;return{x:130+200*Math.cos(a),y:251+200*Math.sin(a),a:a*180/Math.PI};}
  function render(){
+  effects.observe(state,scenePoint);
   let newResult=false;
-  if(state.phase==='caught'&&!handledCatch){clear();handledCatch=true;PomiPond.consumePondFish(pond,state.result.fishId,now());const reserved=beginFishCatch(collection,state.result);if(reserved.ok){persist(collection);resultOpen=true;newResult=true;}}
+  if(state.phase==='caught'&&!handledCatch){clear();handledCatch=true;PomiPond.consumePondFish(pond,state.result.fishId,now());const reserved=beginFishCatch(collection,state.result);if(reserved.ok)persist(collection);}
+  const landing=effects.landing(state);
+  if(state.phase==='caught'&&handledCatch&&collection.pendingCatch&&!resultOpen&&!landing){effects.finishLanding();resultOpen=true;newResult=true;}
   if(state.phase==='escaped'&&previousPhase!=='escaped'){clear();ignoreClick=true;escapeAt=state.time;escapePoint=lastLurePoint||scenePoint(state.lure);state.message='It ran away. Tap ahead of a fish to cast.';q('[data-fishing-floater]').textContent='It ran away';}
   const floater=q('[data-fishing-floater]'),escapeAge=state.time-escapeAt;
   floater.hidden=!active||state.paused||bookOpen||resultOpen||escapeAge>=1.6;
@@ -1971,12 +2059,13 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
   if(state.lure){const p=scenePoint(state.lure);distance.style.left=Math.max(.17,Math.min(.83,p.x+.13))*100+'%';distance.style.top=Math.max(.30,Math.min(.66,p.y-.065))*100+'%';distance.textContent=remaining.toFixed(1)+' m';}
   const pull=FISH_PULL_LEVELS[state.pullLevel].name,next=FISH_PULL_LEVELS[state.nextPullLevel].name;
   const pullText=`${pull} pull${state.pullCue==='pull-incoming'?` · ${next.toLowerCase()} coming…`:''}`;
-  const message=state.paused?'Paused · tap to resume':ready>0?'Ready…':fight?(state.danger==='tight'?'Too tight! Release to ease off.':state.danger==='slack'?'Too loose! Reel now.':pullText):state.message;
+  panel.dataset.fishingBeat=landing?'landing':state.phase;panel.dataset.fishingPull=state.phase==='fight'?pull.toLowerCase():'';
+  const message=state.paused?'Paused · tap to resume':ready>0?'Ready…':landing?'Nice catch!':fight?(state.danger==='tight'?'Too tight! Release to ease off.':state.danger==='slack'?'Too loose! Reel now.':pullText):state.message;
   if(message!==previousStatus){status.textContent=message;previousStatus=message;}
-  status.classList.toggle('fp-sr',state.phase==='escaped'&&!state.paused);
-  const action=state.paused?'Tap to resume':ready>0?'Ready…':fight?(mode.value==='hold'?(state.reeling?'Release to ease':'Hold anywhere to reel'):(state.reeling?'Tap to release':'Tap to reel')):state.phase==='bite'?'BITE! Tap to hook':state.phase==='nibble'?'Nibble… wait':state.phase==='approach'?'A fish is approaching…':state.fish.some(f=>f.available)?'Tap ahead of a fish to cast':'New fish will arrive soon';
+  status.classList.toggle('fp-sr',(state.phase==='escaped'&&!state.paused)||landing);
+  const action=state.paused?'Tap to resume':ready>0?'Ready…':landing?'Nice catch!':fight?(mode.value==='hold'?(state.reeling?'Release to ease':'Hold anywhere to reel'):(state.reeling?'Tap to release':'Tap to reel')):state.phase==='bite'?'BITE! Tap to hook':state.phase==='nibble'?'Nibble… wait':state.phase==='approach'?'A fish is approaching…':state.fish.some(f=>f.available)?'Tap ahead of a fish to cast':'New fish will arrive soon';
   q('.fp-pond-action').textContent=action;q('.fp-pond-action').hidden=resultOpen||bookOpen;status.hidden=resultOpen||bookOpen;main.setAttribute('aria-label',`Pond. ${action}. Space or Enter also works.`);main.setAttribute('aria-disabled',String(!state.paused&&(ready>0||['approach','nibble'].includes(state.phase))));main.setAttribute('aria-pressed',String(fight&&!!state.reeling));
-  main.inert=bookOpen||resultOpen;pause.textContent=state.paused?'Resume':'Pause';pause.disabled=resultOpen||bookOpen;mode.disabled=resultOpen||bookOpen;q('[data-fishing-journal]').disabled=resultOpen||bookOpen;
+  main.inert=bookOpen||resultOpen||(landing&&!state.paused);pause.textContent=state.paused?'Resume':'Pause';pause.disabled=resultOpen||bookOpen;mode.disabled=resultOpen||bookOpen;q('[data-fishing-journal]').disabled=resultOpen||bookOpen||landing;
   q('[data-fishing-result]').hidden=!resultOpen||bookOpen;q('[data-fishing-book]').hidden=!bookOpen;
   if(resultOpen&&collection.pendingCatch){const pending=collection.pendingCatch;q('[data-result-art]').src=FISHING_ASSETS[artKeys[pending.species]];q('[data-result-name]').textContent=pending.species;q('[data-result-rarity]').textContent=`${pending.rarity} catch${pending.lengthM?` · ${Math.round(pending.lengthM*100)} cm`:''}`;q('[data-result-copy]').textContent=`${collection.discovered[pending.species]?'A lovely addition to your basket.':'New discovery for your fish journal!'} ${pond.returnBonus.charges} return bonus${pond.returnBonus.charges===1?'':'es'} left; each adds 2 wallet coins when you keep a fish.`;q('[data-fishing-keep]').textContent=['session','protected','conflict'].includes(storageMode)?'Keep · this visit only':'Keep fish';}
   q('[data-fishing-storage]').textContent=storageText();sessionButton.hidden=!['failed','protected','conflict'].includes(storageMode);retrySaveButton.hidden=storageMode!=='failed';
@@ -1995,9 +2084,10 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
    const shade=ctx.createRadialGradient(8,-2,3,3,0,40);shade.addColorStop(0,'#355e5bbb');shade.addColorStop(.65,'#416b6599');shade.addColorStop(1,'#5f888100');ctx.fillStyle=shade;ctx.filter='blur(.8px)';
    ctx.beginPath();ctx.moveTo(34,0);ctx.bezierCurveTo(32,-14,4,-17,-19,-6);ctx.quadraticCurveTo(-32,-3,-46,tail);ctx.quadraticCurveTo(-32,5,-19,6);ctx.bezierCurveTo(4,17,32,14,34,0);ctx.fill();ctx.restore();
   }
+  const rodTip=effects.rod(ctx,w,h,state);
   if(state.lure&&['approach','nibble','bite','fight'].includes(state.phase)){
-   const p=scenePoint(state.lure);lastLurePoint=p;const x=p.x*w,y=p.y*h,bite=state.phase==='bite',jitter=!reduced.matches&&['nibble','fight'].includes(state.phase)?Math.sin(state.time*15)*3:0;
-   ctx.strokeStyle='#fff5e4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(w*.46,0);ctx.quadraticCurveTo(w*.4,h*.35,x,y+jitter);ctx.stroke();
+   const p=effects.lure(state,scenePoint(state.lure));lastLurePoint=p;const x=p.x*w,y=p.y*h,bite=state.phase==='bite',jitter=!reduced.matches&&['nibble','fight'].includes(state.phase)?Math.sin(state.time*15)*3:0;
+   ctx.strokeStyle='#fff5e4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(rodTip.x,rodTip.y);ctx.quadraticCurveTo((rodTip.x+x)/2,(rodTip.y+y)/2+(state.reeling?0:22),x,y+jitter);ctx.stroke();
    ctx.strokeStyle='#f5eee399';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y,32+(bite?13:0),13,0,0,Math.PI*2);ctx.stroke();
    const gradient=ctx.createLinearGradient(x-10,y-20,x+10,y+16);gradient.addColorStop(0,'#ef9b76');gradient.addColorStop(.5,'#c96e52');gradient.addColorStop(.51,'#fff5dc');gradient.addColorStop(1,'#e9cc91');ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(x,y+jitter,bite?14:12,bite?9:19,0,0,Math.PI*2);ctx.fill();
    if(bite){ctx.fillStyle='#502715';ctx.font='900 48px PomiFishing,sans-serif';ctx.textAlign='center';ctx.fillText('!',x,y-32);}
@@ -2007,17 +2097,18 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
    const x=escapePoint.x*w,y=escapePoint.y*h,t=reduced.matches?0:age/.35;
    ctx.save();ctx.globalAlpha=1-t;ctx.strokeStyle='#fff5e4';ctx.lineWidth=3;
    // Separated ends show the break; the upper end recoils.
-   ctx.beginPath();ctx.moveTo(w*.46,0);ctx.quadraticCurveTo(w*.4,h*.3,x-18-t*35,y-28-t*70);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(rodTip.x,rodTip.y);ctx.quadraticCurveTo(rodTip.x-35,rodTip.y-40,x+18+t*35,y+28+t*70);ctx.stroke();
    ctx.beginPath();ctx.moveTo(x+5,y-12);ctx.lineTo(x+14,y+5);ctx.stroke();
    ctx.beginPath();ctx.ellipse(x,y,26+t*28,11+t*10,0,0,Math.PI*2);ctx.stroke();ctx.restore();
   }
 
+  effects.draw(ctx,w,h,state,scenePoint);
  }
  new ResizeObserver(()=>draw()).observe(canvas);
  function frame(now){raf=0;if(!active||state.paused||document.hidden||bookOpen||resultOpen){last=0;return;}const dt=last?Math.min(.1,(now-last)/1000):0;last=now;if(ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);if(state.phase!==previousPhase){clear();ignoreClick=false;}render();schedule();}
  for(let i=0;i<8;i++){const piece=document.createElement('i');piece.style.left=(i%2?85:5)+(i%3)*2+'%';piece.style.top=10+(i*11)%75+'%';piece.style.animationDelay=i*.035+'s';q('.fp-confetti').append(piece);}
- if(collection.pendingCatch){state.phase='caught';state.result=structuredClone(collection.pendingCatch);handledCatch=true;resultOpen=true;}
- panel.fishingStudy={snapshot:()=>structuredClone(state),collection:()=>structuredClone(collection),pond:()=>structuredClone(pond),enter,leave,advance:dt=>{if(!state.paused&&ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);render();},cast:p=>{castFishing(state,p);render();},hook:()=>{hookFishing(state);render();},pause:setPause,capture:()=>canvas.toDataURL('image/png')};
+ if(collection.pendingCatch){state.phase='caught';state.result=structuredClone(collection.pendingCatch);handledCatch=true;resultOpen=true;effects.recover(state);}
+ panel.fishingStudy={snapshot:()=>structuredClone(state),presentation:()=>effects.snapshot(state),collection:()=>structuredClone(collection),pond:()=>structuredClone(pond),enter,leave,advance:dt=>{if(!state.paused&&ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);render();},cast:p=>{castFishing(state,p);render();},hook:()=>{hookFishing(state);render();},pause:setPause,capture:()=>canvas.toDataURL('image/png')};
  economy.subscribe((snapshot,saveStatus)=>{const hadPending=!!collection.pendingCatch;household=snapshot;collection=structuredClone(snapshot.fishing.collection);pond=normalizePond(snapshot.fishing.pond);storageMode=saveStatus.mode;if(hadPending&&!collection.pendingCatch){resultOpen=false;if(state.phase==='caught')state.phase='idle';handledCatch=true;}if(active)syncPond();render();});
  syncPond();if(active)enter();else render();
 })();
