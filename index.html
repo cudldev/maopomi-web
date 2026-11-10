@@ -259,7 +259,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 .pomi-fishing .fp-gauge{position:absolute;left:50%;bottom:16%;transform:translateX(-50%);width:clamp(200px,55%,285px);pointer-events:none;text-shadow:0 0 5px #fff5e4}
 .pomi-fishing .fp-gauge svg{display:block;width:100%;height:auto;overflow:visible}.pomi-fishing .fp-gauge text{font:800 16px PomiFishing,sans-serif;fill:var(--fp-ink)}
 #pomi-house-study .fp-gauge svg{width:100%;height:auto;stroke:none;fill:none}
-#pomi-house-study .pomi-fishing .fp-heading h2{font-size:21px}#pomi-house-study .pomi-fishing .fp-sheet h2{font-size:30px}#pomi-house-study .pomi-fishing .fp-journal h2,#pomi-house-study .pomi-fishing .fp-miss h2{font-size:25px}
+#pomi-house-study .pomi-fishing .fp-heading h2{font-size:21px}#pomi-house-study .pomi-fishing .fp-sheet h2{font-size:30px}#pomi-house-study .pomi-fishing .fp-journal h2{font-size:25px}
 .pomi-fishing .fp-distance{position:absolute;padding:5px 10px;border-radius:18px;background:var(--fp-paper);box-shadow:0 2px 4px #50302024;font-size:16px;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%)}
 .pomi-fishing .fp-status{position:absolute;bottom:5%;left:6%;width:88%;text-align:center;font-size:15px;text-shadow:0 1px 4px #fff5e4,0 0 8px #fff5e4;pointer-events:none;line-height:1.35}
 .pomi-fishing .fp-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 4px 0}.pomi-fishing .fp-mode{display:flex;align-items:center;gap:6px;font-size:13px}.pomi-fishing select{max-width:150px;font-size:14px;padding-inline:10px}.pomi-fishing .fp-tools [data-fishing-journal]{margin-right:auto}
@@ -268,7 +268,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 .pomi-fishing .fp-sheet h2{font-size:clamp(27px,7vw,40px)}.pomi-fishing .fp-sheet .fp-hero{display:block;width:100%;height:auto;max-height:42%;object-fit:contain;filter:drop-shadow(0 14px 8px #7d552124);animation:fp-reveal .55s ease-out both}
 .pomi-fishing .fp-rarity{border-radius:20px;padding:5px 14px;background:#e9dcf3;text-transform:capitalize;font-size:14px}.pomi-fishing .fp-primary{background:#dce3b5;min-width:170px;font-size:19px}.pomi-fishing .fp-sheet p{line-height:1.5;max-width:28em}.pomi-fishing .fp-result-name{font-size:30px!important}
 .pomi-fishing .fp-confetti{position:absolute;inset:10%;pointer-events:none;overflow:hidden}.pomi-fishing .fp-confetti i{position:absolute;width:12px;height:18px;border-radius:5px;background:#e1bedc;transform:rotate(24deg);animation:fp-confetti .8s ease-out both}.pomi-fishing .fp-confetti i:nth-child(even){background:#edb6a0;transform:rotate(-28deg)}
-.pomi-fishing .fp-miss{inset:auto 12px 18px;border-radius:28px;background:#fff5e4f5;padding:24px 18px;box-shadow:0 8px 30px #60482c20}.pomi-fishing .fp-miss h2{font-size:26px}
 .pomi-fishing .fp-journal{justify-content:flex-start;align-items:stretch;text-align:left;overflow:auto;background:var(--fp-paper)}.pomi-fishing .fp-journal-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.pomi-fishing .fp-journal h2{font-size:25px}.pomi-fishing .fp-journal-total{font-size:14px}.pomi-fishing .fp-entries{display:grid;gap:12px}.pomi-fishing .fp-entry{border-top:1px solid var(--fp-edge);padding-top:12px}.pomi-fishing .fp-entry-top{display:flex;align-items:center;gap:12px}.pomi-fishing .fp-entry img{width:85px;height:65px;object-fit:contain}.pomi-fishing .fp-entry img[data-unknown]{filter:brightness(0);opacity:.25}.pomi-fishing .fp-entry p{font-size:13px}.pomi-fishing .fp-entry-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pomi-fishing .fp-entry-actions button{font-size:13px;padding:8px 11px;min-height:48px}.pomi-fishing .fp-journal-note{font-size:12px}
 .pomi-fishing[hidden]{display:none!important}
 #pomi-house-study .pomi-fishing,#pomi-fishing-study{display:flex;flex-direction:column;width:100%;min-height:100dvh;padding:0;margin:0;border:0;border-radius:0;max-width:none;background:var(--fp-paper)}
@@ -280,7 +279,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 .pomi-fishing .fp-heading h2{max-width:60%}
 .pomi-fishing .fp-sheet{overflow:auto;justify-content:flex-start;padding-top:calc(88px + env(safe-area-inset-top));padding-bottom:24px}
 .pomi-fishing .fp-sheet .fp-hero{min-height:0;flex:0 1 35%;max-height:35%;width:min(100%,420px)}
-.pomi-fishing .fp-miss{inset:0;border-radius:0}
 .pomi-fishing .fp-tools{padding:10px max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
 .pomi-fishing .fp-storage{margin:0;padding:6px max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
 .pomi-fishing [data-pond-status]{padding-bottom:max(10px,env(safe-area-inset-bottom))}
@@ -288,6 +286,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 @keyframes fp-reveal{from{transform:translateY(25px) scale(.85);opacity:.3}to{transform:none;opacity:1}}@keyframes fp-confetti{from{translate:0 -30px;opacity:0}to{translate:0 30px;opacity:1}}
 @media(prefers-reduced-motion:reduce){.pomi-fishing .fp-sheet .fp-hero,.pomi-fishing .fp-confetti i{animation:none}}
 @media(max-width:360px){.pomi-fishing .fp-heading h2{font-size:18px;padding:10px 12px}.pomi-fishing .fp-heading{left:8px;right:8px}.pomi-fishing .fp-pond-action{font-size:16px}.pomi-fishing .fp-status{font-size:13px}.pomi-fishing .fp-tools{gap:6px}.pomi-fishing .fp-tools button{padding:10px 12px}.pomi-fishing .fp-mode{width:100%;justify-content:flex-end}}
+.pomi-fishing .fp-floater{position:absolute;z-index:3;top:38%;left:50%;transform:translateX(-50%);max-width:90%;padding:9px 16px;border-radius:24px;background:var(--fp-paper);color:var(--fp-ink);box-shadow:0 3px 8px #50302024;text-align:center;pointer-events:none;animation:fp-float 1.6s ease-out both}
+@keyframes fp-float{0%{opacity:0;translate:0 8px}12%,72%{opacity:1}100%{opacity:0;translate:0 -20px}}
+@media(prefers-reduced-motion:reduce){.pomi-fishing .fp-floater{animation:none}}
 </style>
 <section class="pomi-fishing" hidden data-fishing-panel aria-labelledby="fp-title">
  <div class="fp-world">
@@ -297,7 +298,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   <output class="fp-distance" data-fishing-distance hidden aria-label="Distance left" aria-live="off">10.0 m</output>
   <p class="fp-status" role="status" aria-live="polite">Cast ahead of a swimming fish.</p>
   <section class="fp-sheet" data-fishing-result hidden aria-labelledby="fp-result-title"><div class="fp-confetti" aria-hidden="true"></div><h2 id="fp-result-title">What a catch!</h2><img class="fp-hero" data-result-art alt=""><h3 class="fp-result-name" data-result-name></h3><span class="fp-rarity" data-result-rarity></span><p data-result-copy></p><button class="fp-primary" data-fishing-keep>Keep fish</button><p data-result-save role="status"></p></section>
-  <section class="fp-sheet fp-miss" data-fishing-miss hidden aria-labelledby="fp-miss-title"><h2 id="fp-miss-title">This one got away</h2><p data-miss-reason></p><p>Another fish is waiting.</p><button data-fishing-retry>Cast again</button></section>
+  <p class="fp-floater" data-fishing-floater aria-hidden="true" hidden></p>
   <section class="fp-sheet fp-journal" data-fishing-book hidden aria-labelledby="fp-book-title"><div class="fp-journal-head"><h2 id="fp-book-title">Fish journal</h2><button data-fishing-book-close>Back</button></div><p class="fp-journal-total" data-book-total></p><div class="fp-entries" data-book-entries></div><p class="fp-journal-note">One of each fish stays in your collection. Use extra catches for coins, ingredients or cat gifts.</p><p class="fp-journal-note">Ingredient and gift portions are saved for later recipes and cat interactions.</p><p data-book-message role="status"></p></section>
  </div>
  <div class="fp-sr"><div class="fp-tension" role="meter" aria-label="Line tension" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div><output data-fishing-progress aria-label="Distance left" aria-live="off">10.0 m</output></div>
@@ -1618,7 +1619,8 @@ const FISH_SPECIES = Object.freeze([
   { species: 'Silver carp', rarity: 'uncommon', safeLow: 24, safeHigh: 76, pull: 15, interval: 2.4, startDistance: 5 },
   { species: 'Moon koi', rarity: 'rare', safeLow: 30, safeHigh: 70, pull: 23, interval: 1.8, startDistance: 6 },
 ]);
-const FISH_PULL_LEVELS = Object.freeze([{name:'Gentle',multiplier:.35},{name:'Steady',multiplier:.9},{name:'Strong',multiplier:1.6}]);
+// Strong pulls demand a clear release; gentle phases are the reeling opportunity.
+const FISH_PULL_LEVELS = Object.freeze([{name:'Gentle',multiplier:.35},{name:'Steady',multiplier:.9},{name:'Strong',multiplier:1.6,tensionSurge:24}]);
 const FISH_TUNING = Object.freeze({ fixedStep: .05, noticeRadius: .28, noticeCos: .5, approachSpeed: .18, nibbleTime: .65, biteWindow: 1.25, dangerGrace: .85, maxFrame: .25, releaseSpeed: 12, reelSpeed: 19, distanceSpeed: 2.4, pullbackSpeed: .06, maxDistanceMultiplier:1.3, pullWarning: .65 });
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function rng(state){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296;}
@@ -1670,7 +1672,8 @@ function advance(s,dt){
    s.pullCue=s.nextPullIn<=FISH_TUNING.pullWarning?'pull-incoming':FISH_PULL_LEVELS[s.pullLevel].name.toLowerCase();
    // Releasing always relaxes the line at the same rate. Fish resistance only
    // increases the upward speed while the player reels against it.
-   const resistance=f.pull*FISH_PULL_LEVELS[s.pullLevel].multiplier;
+   const pull=FISH_PULL_LEVELS[s.pullLevel];
+   const resistance=f.pull*pull.multiplier+(pull.tensionSurge||0);
    const rate=s.reeling?FISH_TUNING.reelSpeed+resistance:-FISH_TUNING.releaseSpeed;
    s.tension=clamp(s.tension+rate*dt,0,100);
    s.danger=s.tension<f.safeLow?'slack':s.tension>f.safeHigh?'tight':null;
@@ -1875,7 +1878,7 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  let household=economy.snapshot(),collection=structuredClone(household.fishing.collection),pond=normalizePond(household.fishing.pond),storageMode=economy.status().mode,lastSaved=null;
  function normalizePond(value){const next=structuredClone(value);next.arrivalIntervalMs??=45_000;next.returnBonus??=createFishingReturnBonus(now());return next;}
  const state=createFishing(17),reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let active=!!standalone,last=0,raf=0,ready=0,heldPointer=null,heldKey=null,ignoreClick=false,pointerPhase=null,previousStatus='',previousPhase='idle',resultOpen=false,missOpen=false,bookOpen=false,handledCatch=false,pondTimer=0;
+ let active=!!standalone,last=0,raf=0,ready=0,heldPointer=null,heldKey=null,ignoreClick=false,pointerPhase=null,previousStatus='',previousPhase='idle',resultOpen=false,escapeAt=-Infinity,escapePoint=null,lastLurePoint=null,bookOpen=false,handledCatch=false,pondTimer=0;
  const backdrop=new Image();backdrop.onload=()=>draw();backdrop.src=FISHING_ASSETS.pond;
  function storageText(){return storageMode==='saved'?'Journal and wallet saved on this device.':storageMode==='session'?'This visit only · saving is unavailable.':storageMode==='protected'||storageMode==='conflict'?'Existing household save preserved · this visit only.':'Could not save. Retry, or choose “Use this visit only”.';}
  let lastBonusGranted=0;
@@ -1892,8 +1895,8 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  function refreshPond(enter=false){rememberPositions();if(enter)PomiPond.enterFishingPond(pond,now(),state.targetId);else{PomiPond.refreshFishingPond(pond,now(),state.targetId);pond.lastVisit=Math.max(pond.lastVisit,now());}refreshFishingReturnBonus(pond,now());syncPond();persist(collection);render();}
  function pondTick(){clearTimeout(pondTimer);if(!active||document.hidden)return;const arrival=pond.lastRefillAt+(pond.arrivalIntervalMs??45_000),bonusAt=pond.returnBonus.charges<3?pond.returnBonus.lastUpdatedAt+20*60*1000:Infinity,until=Math.min(Math.max(0,arrival-now()),Math.max(0,bonusAt-now()));pondTimer=setTimeout(()=>{refreshPond();pondTick();},Math.max(250,Math.min(60_000,until||60_000)));}
  function enter(){active=true;last=0;refreshPond(true);pondTick();schedule();}
- function leave(){setPause(true);rememberPositions();pond.lastVisit=Math.max(pond.lastVisit,now());persist(collection);active=false;clearTimeout(pondTimer);}
- function schedule(){if(active&&!state.paused&&!document.hidden&&!bookOpen&&!resultOpen&&!missOpen&&!raf)raf=requestAnimationFrame(frame);}
+ function leave(){setPause(true);rememberPositions();pond.lastVisit=Math.max(pond.lastVisit,now());persist(collection);active=false;escapeAt=-Infinity;render();clearTimeout(pondTimer);}
+ function schedule(){if(active&&!state.paused&&!document.hidden&&!bookOpen&&!resultOpen&&!raf)raf=requestAnimationFrame(frame);}
  function setPause(value){clear();pauseFishing(state,value);last=0;ready=value?0:.65;render();schedule();}
  function resume(){setPause(false);}
  function castPoint(event){
@@ -1902,9 +1905,8 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  }
  function primary(event){
   if(resultOpen||bookOpen)return;
-  if(missOpen){missOpen=false;main.focus();}
   if(state.paused){resume();return;}if(ready>0)return;
-  if(['idle','caught','escaped'].includes(state.phase)){handledCatch=false;if(!state.fish.some(f=>f.available)){state.message='The pond is quiet. New fish will arrive soon.';}else castFishing(state,castPoint(event));}
+  if(['idle','caught','escaped'].includes(state.phase)){handledCatch=false;if(!state.fish.some(f=>f.available)){state.message='The pond is quiet. New fish will arrive soon.';}else{escapeAt=-Infinity;castFishing(state,castPoint(event));}}
   else if(state.phase==='bite'){hookFishing(state);clear();}
   else if(state.phase==='fight'&&mode.value==='toggle')reelFishing(state,!state.reeling);
   render();schedule();
@@ -1932,7 +1934,6 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  });
  const retrySaveButton=document.createElement('button');retrySaveButton.dataset.fishingRetrySave='';retrySaveButton.textContent='Retry save';retrySaveButton.hidden=true;retrySaveButton.addEventListener('click',()=>{economy.retry();storageMode=economy.status().mode;household=economy.snapshot();collection=structuredClone(household.fishing.collection);pond=normalizePond(household.fishing.pond);render();});q('.fp-storage').after(retrySaveButton);
  const sessionButton=document.createElement('button');sessionButton.dataset.fishingSession='';sessionButton.textContent='Use this visit only';sessionButton.hidden=true;sessionButton.addEventListener('click',()=>{economy.useSession();storageMode=economy.status().mode;household=economy.snapshot();collection=structuredClone(household.fishing.collection);pond=normalizePond(household.fishing.pond);render();});retrySaveButton.after(sessionButton);
- q('[data-fishing-retry]').addEventListener('click',()=>{missOpen=false;state.paused=false;ready=0;last=0;render();main.focus();schedule();});
  q('[data-fishing-journal]').addEventListener('click',()=>{clear();if(['approach','nibble','bite','fight'].includes(state.phase))pauseFishing(state,true);bookOpen=true;renderBook();render();q('[data-fishing-book-close]').focus();});
  q('[data-fishing-book-close]').addEventListener('click',()=>{bookOpen=false;last=0;render();q('[data-fishing-journal]').focus();schedule();});
  function renderBook(){
@@ -1955,9 +1956,12 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
  function scenePoint(f){const moving=state.phase==='fight'&&(f.id===state.targetId||f===state.lure),r=moving?Math.min(1.3,state.distance/state.startDistance):1;return{x:Math.max(.14,Math.min(.86,.12+(moving ? .55+(f.x-.55)*r : f.x)*.76)),y:Math.max(.31,Math.min(.74,.30+(moving ? .88+(f.y-.88)*r : f.y)*.44))};}
  function arcPoint(value){const a=(-123.367+value*.66734)*Math.PI/180;return{x:130+200*Math.cos(a),y:251+200*Math.sin(a),a:a*180/Math.PI};}
  function render(){
-  let newResult=false,newMiss=false;
+  let newResult=false;
   if(state.phase==='caught'&&!handledCatch){clear();handledCatch=true;PomiPond.consumePondFish(pond,state.result.fishId,now());const reserved=beginFishCatch(collection,state.result);if(reserved.ok){persist(collection);resultOpen=true;newResult=true;}}
-  if(state.phase==='escaped'&&previousPhase!=='escaped'){clear();missOpen=true;newMiss=true;}
+  if(state.phase==='escaped'&&previousPhase!=='escaped'){clear();ignoreClick=true;escapeAt=state.time;escapePoint=lastLurePoint||scenePoint(state.lure);state.message='It ran away. Tap ahead of a fish to cast.';q('[data-fishing-floater]').textContent='It ran away';}
+  const floater=q('[data-fishing-floater]'),escapeAge=state.time-escapeAt;
+  floater.hidden=!active||state.paused||bookOpen||resultOpen||escapeAge>=1.6;
+  if(escapeAge>=1.6)floater.textContent='';
   const fight=state.phase==='fight',f=state.fish.find(f=>f.id===state.targetId),tension=Math.round(state.tension),remaining=Math.max(0,Math.ceil(state.distance*10)/10);
   q('.fp-meters').hidden=!fight||bookOpen||resultOpen;const lo=arcPoint(state.safeLow),hi=arcPoint(state.safeHigh),needle=arcPoint(state.tension);
   q('[data-fishing-safe]').setAttribute('d',`M${lo.x} ${lo.y} A200 200 0 0 1 ${hi.x} ${hi.y}`);q('[data-fishing-needle]').setAttribute('transform',`translate(${needle.x} ${needle.y}) rotate(${needle.a+90})`);
@@ -1969,15 +1973,15 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
   const pullText=`${pull} pull${state.pullCue==='pull-incoming'?` · ${next.toLowerCase()} coming…`:''}`;
   const message=state.paused?'Paused · tap to resume':ready>0?'Ready…':fight?(state.danger==='tight'?'Too tight! Release to ease off.':state.danger==='slack'?'Too loose! Reel now.':pullText):state.message;
   if(message!==previousStatus){status.textContent=message;previousStatus=message;}
+  status.classList.toggle('fp-sr',state.phase==='escaped'&&!state.paused);
   const action=state.paused?'Tap to resume':ready>0?'Ready…':fight?(mode.value==='hold'?(state.reeling?'Release to ease':'Hold anywhere to reel'):(state.reeling?'Tap to release':'Tap to reel')):state.phase==='bite'?'BITE! Tap to hook':state.phase==='nibble'?'Nibble… wait':state.phase==='approach'?'A fish is approaching…':state.fish.some(f=>f.available)?'Tap ahead of a fish to cast':'New fish will arrive soon';
-  q('.fp-pond-action').textContent=action;q('.fp-pond-action').hidden=missOpen||resultOpen||bookOpen;status.hidden=missOpen||resultOpen||bookOpen;main.setAttribute('aria-label',`Pond. ${action}. Space or Enter also works.`);main.setAttribute('aria-disabled',String(!state.paused&&(ready>0||['approach','nibble'].includes(state.phase))));main.setAttribute('aria-pressed',String(fight&&!!state.reeling));
-  main.inert=bookOpen||resultOpen;pause.textContent=state.paused?'Resume':'Pause';pause.disabled=resultOpen||bookOpen||missOpen;mode.disabled=resultOpen||bookOpen||missOpen;q('[data-fishing-journal]').disabled=resultOpen||bookOpen;
-  q('[data-fishing-result]').hidden=!resultOpen||bookOpen;q('[data-fishing-miss]').hidden=!missOpen||bookOpen;q('[data-fishing-book]').hidden=!bookOpen;
+  q('.fp-pond-action').textContent=action;q('.fp-pond-action').hidden=resultOpen||bookOpen;status.hidden=resultOpen||bookOpen;main.setAttribute('aria-label',`Pond. ${action}. Space or Enter also works.`);main.setAttribute('aria-disabled',String(!state.paused&&(ready>0||['approach','nibble'].includes(state.phase))));main.setAttribute('aria-pressed',String(fight&&!!state.reeling));
+  main.inert=bookOpen||resultOpen;pause.textContent=state.paused?'Resume':'Pause';pause.disabled=resultOpen||bookOpen;mode.disabled=resultOpen||bookOpen;q('[data-fishing-journal]').disabled=resultOpen||bookOpen;
+  q('[data-fishing-result]').hidden=!resultOpen||bookOpen;q('[data-fishing-book]').hidden=!bookOpen;
   if(resultOpen&&collection.pendingCatch){const pending=collection.pendingCatch;q('[data-result-art]').src=FISHING_ASSETS[artKeys[pending.species]];q('[data-result-name]').textContent=pending.species;q('[data-result-rarity]').textContent=`${pending.rarity} catch${pending.lengthM?` · ${Math.round(pending.lengthM*100)} cm`:''}`;q('[data-result-copy]').textContent=`${collection.discovered[pending.species]?'A lovely addition to your basket.':'New discovery for your fish journal!'} ${pond.returnBonus.charges} return bonus${pond.returnBonus.charges===1?'':'es'} left; each adds 2 wallet coins when you keep a fish.`;q('[data-fishing-keep]').textContent=['session','protected','conflict'].includes(storageMode)?'Keep · this visit only':'Keep fish';}
-  q('[data-miss-reason]').textContent=state.result?.reason==='tight'?'The line got too tight.':state.result?.reason==='slack'?'The line went slack.':'The bite slipped by.';
   q('[data-fishing-storage]').textContent=storageText();sessionButton.hidden=!['failed','protected','conflict'].includes(storageMode);retrySaveButton.hidden=storageMode!=='failed';
   const count=pond.slots.filter(Boolean).length,arrivalMs=pond.arrivalIntervalMs??45_000,arrivalSeconds=Math.max(1,Math.ceil((arrivalMs-Math.max(0,now()-pond.lastRefillAt))/1000)),bonus=pond.returnBonus??{charges:0,lastUpdatedAt:now()},bonusWait=bonus.charges>=3?0:Math.max(0,bonus.lastUpdatedAt+20*60*1000-now()),bonusText=bonus.charges?`Return bonuses: ${bonus.charges} / 3 · +2 coins when you keep a catch`:`Fishing and selling stay available. Next return bonus in ${Math.max(1,Math.ceil(bonusWait/60000))} min`;q('[data-pond-status]').textContent=`${count} fish · ${count<6?`Next arrival in ${arrivalSeconds}s`:'Visitors change over time'} · ${bonusText} · Longer breaks can bring rarer fish.`;
-  draw();previousPhase=state.phase;if(active&&newResult)q('[data-fishing-keep]').focus({preventScroll:true});if(active&&newMiss)q('[data-fishing-retry]').focus({preventScroll:true});
+  draw();previousPhase=state.phase;if(active&&newResult)q('[data-fishing-keep]').focus({preventScroll:true});
  }
  function draw(){
   const bounds=canvas.getBoundingClientRect(),w=900,h=Math.max(1,Math.round(w*(bounds.height/bounds.width||1.5)));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}ctx.clearRect(0,0,w,h);
@@ -1991,16 +1995,26 @@ return{createFishingPond,enterFishingPond,refreshFishingPond,consumePondFish,enc
    const shade=ctx.createRadialGradient(8,-2,3,3,0,40);shade.addColorStop(0,'#355e5bbb');shade.addColorStop(.65,'#416b6599');shade.addColorStop(1,'#5f888100');ctx.fillStyle=shade;ctx.filter='blur(.8px)';
    ctx.beginPath();ctx.moveTo(34,0);ctx.bezierCurveTo(32,-14,4,-17,-19,-6);ctx.quadraticCurveTo(-32,-3,-46,tail);ctx.quadraticCurveTo(-32,5,-19,6);ctx.bezierCurveTo(4,17,32,14,34,0);ctx.fill();ctx.restore();
   }
-  if(state.lure&&['approach','nibble','bite','fight','escaped'].includes(state.phase)){
-   const p=scenePoint(state.lure),x=p.x*w,y=p.y*h,bite=state.phase==='bite',jitter=!reduced.matches&&['nibble','fight'].includes(state.phase)?Math.sin(state.time*15)*3:0;
+  if(state.lure&&['approach','nibble','bite','fight'].includes(state.phase)){
+   const p=scenePoint(state.lure);lastLurePoint=p;const x=p.x*w,y=p.y*h,bite=state.phase==='bite',jitter=!reduced.matches&&['nibble','fight'].includes(state.phase)?Math.sin(state.time*15)*3:0;
    ctx.strokeStyle='#fff5e4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(w*.46,0);ctx.quadraticCurveTo(w*.4,h*.35,x,y+jitter);ctx.stroke();
    ctx.strokeStyle='#f5eee399';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y,32+(bite?13:0),13,0,0,Math.PI*2);ctx.stroke();
    const gradient=ctx.createLinearGradient(x-10,y-20,x+10,y+16);gradient.addColorStop(0,'#ef9b76');gradient.addColorStop(.5,'#c96e52');gradient.addColorStop(.51,'#fff5dc');gradient.addColorStop(1,'#e9cc91');ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(x,y+jitter,bite?14:12,bite?9:19,0,0,Math.PI*2);ctx.fill();
    if(bite){ctx.fillStyle='#502715';ctx.font='900 48px PomiFishing,sans-serif';ctx.textAlign='center';ctx.fillText('!',x,y-32);}
   }
+  const age=state.time-escapeAt;
+  if(escapePoint&&state.phase==='escaped'&&age<.35){
+   const x=escapePoint.x*w,y=escapePoint.y*h,t=reduced.matches?0:age/.35;
+   ctx.save();ctx.globalAlpha=1-t;ctx.strokeStyle='#fff5e4';ctx.lineWidth=3;
+   // Separated ends show the break; the upper end recoils.
+   ctx.beginPath();ctx.moveTo(w*.46,0);ctx.quadraticCurveTo(w*.4,h*.3,x-18-t*35,y-28-t*70);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(x+5,y-12);ctx.lineTo(x+14,y+5);ctx.stroke();
+   ctx.beginPath();ctx.ellipse(x,y,26+t*28,11+t*10,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+  }
+
  }
  new ResizeObserver(()=>draw()).observe(canvas);
- function frame(now){raf=0;if(!active||state.paused||document.hidden||bookOpen||resultOpen||missOpen){last=0;return;}const dt=last?Math.min(.1,(now-last)/1000):0;last=now;if(ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);if(state.phase!==previousPhase){clear();ignoreClick=false;}render();schedule();}
+ function frame(now){raf=0;if(!active||state.paused||document.hidden||bookOpen||resultOpen){last=0;return;}const dt=last?Math.min(.1,(now-last)/1000):0;last=now;if(ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);if(state.phase!==previousPhase){clear();ignoreClick=false;}render();schedule();}
  for(let i=0;i<8;i++){const piece=document.createElement('i');piece.style.left=(i%2?85:5)+(i%3)*2+'%';piece.style.top=10+(i*11)%75+'%';piece.style.animationDelay=i*.035+'s';q('.fp-confetti').append(piece);}
  if(collection.pendingCatch){state.phase='caught';state.result=structuredClone(collection.pendingCatch);handledCatch=true;resultOpen=true;}
  panel.fishingStudy={snapshot:()=>structuredClone(state),collection:()=>structuredClone(collection),pond:()=>structuredClone(pond),enter,leave,advance:dt=>{if(!state.paused&&ready>0)ready=Math.max(0,ready-dt);else stepFishing(state,dt);render();},cast:p=>{castFishing(state,p);render();},hook:()=>{hookFishing(state);render();},pause:setPause,capture:()=>canvas.toDataURL('image/png')};
