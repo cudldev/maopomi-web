@@ -124,7 +124,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     #pomi-house-study .ph-viewport::-webkit-scrollbar{display:none}
     #pomi-house-study .ph-viewport.ph-dragging{cursor:grabbing;user-select:none}
     #pomi-house-study .ph-scene{position:relative;width:var(--scene-width,2400px);margin:var(--scene-top,0px) auto 0;touch-action:none}
-    #pomi-house-study canvas{display:block;width:100%;height:auto;aspect-ratio:3/1}
+    #pomi-house-study .ph-scene canvas{display:block;width:100%;height:auto;aspect-ratio:3/1}
     #pomi-house-study .ph-overlay{position:relative;z-index:1;pointer-events:none}
     #pomi-house-study .ph-main-art{position:absolute;inset:0;z-index:0}
     #pomi-house-study .ph-hotspot{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;border-radius:50%;background:transparent;min-width:48px;min-height:48px;touch-action:none;cursor:grab}
@@ -253,7 +253,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 .pomi-fishing button:disabled{opacity:.5;cursor:default}.pomi-fishing button:focus-visible,.pomi-fishing select:focus-visible{outline:3px solid #725b92;outline-offset:3px}
 .pomi-fishing .fp-world{position:relative;isolation:isolate;overflow:hidden;border-radius:24px;background:#b3c49c}
 .pomi-fishing .fp-heading{position:absolute;z-index:3;top:12px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}.pomi-fishing .fp-heading>*{pointer-events:auto}.pomi-fishing .fp-heading h2{padding:10px 16px;background:var(--fp-paper);border-radius:28px;box-shadow:0 2px 3px #603c2020;font-size:21px}.pomi-fishing .fp-heading button{padding:10px 14px}
-#pomi-house-study .fp-pond-hit,.pomi-fishing .fp-pond-hit{position:relative;display:block;width:100%;padding:0;border:0;border-radius:0;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;box-shadow:none}
+.pomi-fishing .fp-pond-hit{position:relative;display:block;width:100%;padding:0;border:0;border-radius:0;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;box-shadow:none}
 .pomi-fishing .fp-pond{display:block;width:100%;height:auto;aspect-ratio:2/3}
 .pomi-fishing .fp-pond-action{position:absolute;bottom:10%;left:5%;width:90%;text-align:center;font-size:19px;text-shadow:0 1px 4px #fff5e4,0 0 8px #fff5e4;pointer-events:none}
 .pomi-fishing .fp-gauge{position:absolute;left:50%;bottom:16%;transform:translateX(-50%);width:clamp(200px,55%,285px);pointer-events:none;text-shadow:0 0 5px #fff5e4}
@@ -346,7 +346,28 @@ function walkable(x,y) {
 }
 const cell = p => ({x:Math.max(0,Math.min(95,Math.round(p.x/20))),y:Math.max(0,Math.min(31,Math.round(p.y/20)))});
 const key = p => p.x+','+p.y;
-function route(start,finish) {
+function clearSegment(a,b,blockers=[],gap=0) {
+  if(!walkable(b.x,b.y))return false;
+  const dx=b.x-a.x,dy=b.y-a.y,length2=dx*dx+dy*dy;
+  for(const [left,top,right,bottom] of NAV_OBSTACLES) {
+    let enter=0,exit=1;
+    for(const [origin,delta,min,max] of [[a.x,dx,left,right],[a.y,dy,top,bottom]]) {
+      if(Math.abs(delta)<1e-10) {if(origin<min||origin>max){exit=-1;break;}}
+      else {const t1=(min-origin)/delta,t2=(max-origin)/delta;enter=Math.max(enter,Math.min(t1,t2));exit=Math.min(exit,Math.max(t1,t2));}
+    }
+    if(enter<=exit&&exit>=0&&enter<=1)return false;
+  }
+  for(const o of blockers) {
+    const t=length2?Math.max(0,Math.min(1,((o.x-a.x)*dx+(o.y-a.y)*dy)/length2)):0;
+    // A changed touch footprint may begin inside the gap. Escape gradually.
+    if(Math.hypot(a.x+dx*t-o.x,a.y+dy*t-o.y)<Math.min(gap,distance(a,o))-1e-7)return false;
+  }
+  return true;
+}
+const NAV_OBSTACLES=[...GEOMETRY.dividerXs.map(x=>[x-10,255,x+10,GEOMETRY.dividerEndY-1e-7]),[495,360,745,420],[900,255,1280,390-1e-7]];
+function route(start,finish,blockers=[],gap=0) {
+  if(!walkable(finish.x,finish.y)||blockers.some(o=>distance(finish,o)<gap))return [];
+  if(clearSegment(start,finish,blockers,gap))return [{x:finish.x,y:finish.y}];
   const a=cell(start),b=cell(finish), queue=[a], previous=new Map([[key(a),null]]);
   let found=null;
   for(let i=0;i<queue.length;i++) {
@@ -354,13 +375,25 @@ function route(start,finish) {
     if(p.x===b.x&&p.y===b.y) { found=p; break; }
     for(const d of [[1,0],[-1,0],[0,1],[0,-1]]) {
       const q={x:p.x+d[0],y:p.y+d[1]};
-      if(q.x>=0&&q.x<=95&&q.y>=0&&q.y<=31&&!previous.has(key(q))&&walkable(q.x*20,q.y*20)) { previous.set(key(q),p);queue.push(q); }
+      const from=p===a?start:{x:p.x*20,y:p.y*20},to={x:q.x*20,y:q.y*20};
+      if(q.x>=0&&q.x<=95&&q.y>=0&&q.y<=31&&!previous.has(key(q))&&clearSegment(from,to,blockers,gap)) { previous.set(key(q),p);queue.push(q); }
     }
   }
   if(!found) return [];
   const result=[];
   while(previous.get(key(found))) { result.push({x:found.x*20,y:found.y*20}); found=previous.get(key(found)); }
-  return result.reverse();
+  const points=result.reverse();
+  const last=points.at(-1)||start;
+  if(!clearSegment(last,finish,blockers,gap))return [];
+  points.push({x:finish.x,y:finish.y});
+  // Remove grid stair-steps while checking the entire shortcut against furniture.
+  const smooth=[];let from=start,index=0;
+  while(index<points.length) {
+    let end=points.length-1;
+    while(end>index&&!clearSegment(from,points[end],blockers,gap))end--;
+    smooth.push(points[end]);from=points[end];index=end+1;
+  }
+  return smooth;
 }
 function cat(id,name,x,y,traits,needs) {
   traits={...traits};traits.social??=traits.sociability??.5;traits.space??=1-(traits.affection??.5);traits.curious??=traits.curiosity??.5;
@@ -422,14 +455,14 @@ function record(w,text) { w.events.unshift({id:++w.eventId,time:w.time,text}); w
 function say(w,c,text) { c.bubble=text;c.bubbleUntil=w.time+4; }
 function stay(w,c,action,duration,intent,bubble='') {
   if(c.action==='eat'&&action!=='eat') c.eatingBowl=null;
-  c.action=action;c.until=w.time+duration;c.intent=intent;c.path=[];c.nextAction=null;
+  c.action=action;c.until=w.time+duration;c.intent=intent;c.path=[];c.nextAction=null;c.passing=null;c.blockedTime=0;c.bowlTarget=null;
   if(bubble) say(w,c,bubble);
 }
 function travel(w,c,target,nextAction,intent) {
   if(key(cell(c))===key(cell(target))) {c.nextAction=nextAction;arrive(w,c);return true;}
   const path=route(c,target);
   if(!path.length) { stay(w,c,'idle',2,'Pausing for a moment');return false; }
-  c.supportId=null;c.path=path;c.action='walk';c.nextAction=nextAction;c.intent=intent;
+  c.supportId=null;c.path=path;c.action='walk';c.nextAction=nextAction;c.intent=intent;c.passing=null;c.blockedTime=0;c.repathAt=0;
   return true;
 }
 function randomSpot(w,room) {
@@ -596,7 +629,11 @@ function decide(w,c) {
     const free=available.filter(b=>!other||(other.bowlTarget!==b.id&&other.eatingBowl!==b.id));
     const bowl=(free.length?free:available).sort((a,b)=>distance(c,a)-distance(c,b))[0];
     if(bowl) {c.bowlTarget=bowl.id;travel(w,c,{x:bowl.x,y:bowl.y},'food','Heading to a food bowl');return;}
-    if(w.food===0) {c.bowlTarget='left';travel(w,c,{x:1000,y:485},'food','Looking for a snack');return;}
+    if(w.food===0) {
+      const bowl=BOWLS.filter(b=>!other||(other.bowlTarget!==b.id&&other.eatingBowl!==b.id&&distance(b,other)>=(w.minSeparation||CAT_SEPARATION)))
+        .sort((a,b)=>distance(c,a)-distance(c,b))[0];
+      if(bowl){c.bowlTarget=bowl.id;travel(w,c,bowl,'food','Looking for a snack');return;}
+    }
   }
   if(c.needs.energy<30) {travel(w,c,c.id==='pomi'?OBJECTS.pomiBed:OBJECTS.misoBed,'bed','Looking for a comfortable bed');return;}
   if(c.needs.hygiene<48) {stay(w,c,'groom',7,'Taking care of an unruly patch of fur','Very important grooming.');return;}
@@ -682,6 +719,90 @@ function step(w,dt) {
   let remaining=Math.min(dt,2);
   while(remaining>1e-8) { const t=Math.min(0.1,remaining);tick(w,t);remaining-=t; }
 }
+const moving=c=>c.action==='walk'||c.action==='zoom';
+const journeyGoal=c=>c.action==='zoom'?c.path[0]:c.path.at(-1);
+const journeyTail=c=>c.action==='zoom'?c.path.slice(1):[];
+function pullAside(w,c,other,gap) {
+  if(c.passing||other.passing||w.heldCat===other.id||w.heldCat===c.id||!moving(c)||!c.path.length||!moving(other)||!other.path.length)return false;
+  const goal=journeyGoal(c),otherGoal=journeyGoal(other);
+  if(distance(goal,otherGoal)<gap+3)return false;
+  // Find a nearby passing pocket where both the retreat and the other cat's
+  // onward journey fit. Narrow kitchen/divider lanes cannot fit two phone targets.
+  const spots=[];
+  for(let x=80;x<1900;x+=60)for(let y=280;y<=550;y+=50) {
+    const p={x,y};
+    if(distance(c,p)<50||distance(c,p)>650||!walkable(x,y)||distance(p,other)<gap+12)continue;
+    spots.push(p);
+  }
+  spots.sort((a,b)=>distance(c,a)-distance(c,b)||a.y-b.y||a.x-b.x);
+  for(const p of spots) {
+    const escape=route(c,p,[other],gap+4);
+    if(!escape.length||!route(other,otherGoal,[p],gap+8).length||!route(p,goal,[otherGoal],gap+3).length)continue;
+    const dx=otherGoal.x-other.x,dy=otherGoal.y-other.y,len=Math.hypot(dx,dy)||1;
+    c.passing={goal,tail:journeyTail(c),origin:{x:c.x,y:c.y},direction:{x:dx/len,y:dy/len},otherId:other.id};
+    c.path=escape;c.blockedTime=0;return true;
+  }
+  return false;
+}
+function moveCat(w,c,dt) {
+  const zoom=c.action==='zoom',speed=zoom?230:62,amount=speed*dt;
+  const others=w.cats.filter(o=>o.id!==c.id),gap=Math.max(CAT_SEPARATION,w.minSeparation||CAT_SEPARATION);
+  const other=others.slice().sort((a,b)=>distance(c,a)-distance(c,b))[0];
+  c.movingNow=false;
+  // Let the yielding cat finish reaching the pocket before advancing into its
+  // escape route. Otherwise both cats can pin each other mid-retreat.
+  if(others.some(o=>o.passing?.otherId===c.id&&o.path.length))return;
+  if(c.passing&&!c.path.length) {
+    const passing=c.passing,passingCat=w.cats.find(o=>o.id===passing.otherId);
+    const cleared=!passingCat||!moving(passingCat)||
+      (passingCat.x-passing.origin.x)*passing.direction.x+(passingCat.y-passing.origin.y)*passing.direction.y>gap;
+    if(!cleared)return;
+    if(w.time<(c.repathAt||0))return;
+    c.repathAt=w.time+.6;
+    c.path=route(c,passing.goal,others,gap+3);
+    if(!c.path.length)return;
+    c.path.push(...passing.tail);
+    c.passing=null;
+  }
+  // Meet a social recipient at the current position, rather than pursuing the
+  // stale destination after they have left or started a protected activity.
+  if(c.nextAction==='social'&&!c.passing) {
+    const recipient=w.cats.find(o=>o.id===c.targetId);
+    if(!recipient||moving(recipient)||w.heldCat===recipient.id) {
+      c.cooldown=Math.max(c.cooldown,12);stay(w,c,'watch',3,'Giving the other cat room');return;
+    }
+    if(distance(c,recipient)<=gap+24) {arrive(w,c);return;}
+  }
+  const target=c.path[0];
+  if(!target)return;
+  const len=distance(c,target),p=len<=amount?{...target}:{x:c.x+(target.x-c.x)/len*amount,y:c.y+(target.y-c.y)/len*amount};
+  if(clearSegment(c,p,others,gap)) {
+    if(Math.abs(p.x-c.x)>.05)c.facing=p.x<c.x?-1:1;
+    c.x=p.x;c.y=p.y;if(len<=amount)c.path.shift();c.blockedTime=0;
+    c.movingNow=len>0;c.walkTime+=dt;return;
+  }
+  c.blockedTime=(c.blockedTime||0)+dt;
+  const goal=journeyGoal(c);
+  // An occupied resource must not trap a second cat forever or consume remotely.
+  if(c.blockedTime>3&&!c.passing&&others.some(o=>distance(goal,o)<gap)) {
+    if(c.nextAction==='social')c.cooldown=Math.max(c.cooldown,12);
+    stay(w,c,'watch',3,'Waiting for a little room');c.bowlTarget=null;return;
+  }
+  if(w.time<(c.repathAt||0))return;
+  c.repathAt=w.time+.6;
+  const signature=[c.x,c.y,goal.x,goal.y,gap,...others.flatMap(o=>[o.x,o.y,o.path.at(-1)?.x,o.path.at(-1)?.y,o.action])].join(',');
+  if(c.navigationFailure===signature)return;
+  const path=route(c,goal,others,gap+3);
+  if(path.length) {c.path=[...path,...journeyTail(c)];return;}
+  if(other&&(pullAside(w,c,other,gap)||pullAside(w,other,c,gap)))return;
+  c.navigationFailure=signature;
+  // Overlap recovery uses ordinary movement speed, including exact coincidence.
+  if(other&&distance(c,other)<gap) {
+    const escapes=Array.from({length:16},(_,i)=>{const angle=i*Math.PI/8;return{x:c.x+Math.cos(angle)*amount,y:c.y+Math.sin(angle)*amount};})
+      .filter(p=>clearSegment(c,p,others,gap)).sort((a,b)=>distance(b,other)-distance(a,other));
+    if(escapes.length) {c.x=escapes[0].x;c.y=escapes[0].y;c.movingNow=true;c.walkTime+=dt;}
+  }
+}
 function tick(w,dt) {
   w.time+=dt;
   if(w.toy&&w.toy.until<w.time) w.toy=null;
@@ -699,34 +820,13 @@ function tick(w,dt) {
       if(other&&id===other.id&&distance(c,other)>100&&distance(c,other)<240&&c.action!=='rejected') r.trust=Math.min(1,r.trust+dt*0.0008);
     }
     if(w.heldCat===c.id) continue;
-    if(c.action==='walk'&&c.restlessness>92&&c.needs.energy>48&&c.needs.fullness>=32) {
+    if(c.action==='walk'&&!c.passing&&!c.blockedTime&&c.restlessness>92&&c.needs.energy>48&&c.needs.fullness>=32) {
       c.action='ready';c.until=w.time;
     }
     if(c.action==='walk'||c.action==='zoom') {
-      const zoom=c.action==='zoom', speed=zoom?230:62;
-      const target=c.path[0];
-      if(target) {
-        const len=distance(c,target),amount=speed*dt;c.facing=target.x<c.x?-1:target.x>c.x?1:c.facing;
-        const nx=len<=amount?target.x:c.x+(target.x-c.x)/len*amount;
-        const ny=len<=amount?target.y:c.y+(target.y-c.y)/len*amount;
-        const separation=Math.max(CAT_SEPARATION,w.minSeparation||CAT_SEPARATION);
-        const segmentWalkable=p=>{const n=Math.max(2,Math.ceil(distance(c,p)/3));for(let i=1;i<=n;i++){const t=i/n;if(!walkable(c.x+(p.x-c.x)*t,c.y+(p.y-c.y)*t))return false;}return true;};
-        const currentDistance=other?distance(c,other):Infinity,candidateDistance=other?Math.hypot(nx-other.x,ny-other.y):Infinity;
-        const belowNewGap=other&&currentDistance<separation;
-        const blocked=!segmentWalkable({x:nx,y:ny})||(other&&(candidateDistance<Math.min(separation,currentDistance+1e-6)||(!belowNewGap&&candidateDistance<separation)));
-        if(!blocked) {c.x=nx;c.y=ny;if(len<=amount)c.path.shift();c.yieldTime=0;}
-        else {
-          c.yieldTime=(c.yieldTime||0)+dt;
-          const side=c.y<other.y?-1:1;
-          const sidesteps=[{x:c.x,y:c.y+side*12},{x:c.x,y:c.y-side*12},{x:c.x-12,y:c.y},{x:c.x+12,y:c.y}];
-          const escape=sidesteps.filter(p=>segmentWalkable(p)&&(!other||Math.hypot(p.x-other.x,p.y-other.y)>=Math.min(separation,currentDistance+1e-6)))
-            .sort((a,b)=>distance(a,target)-distance(b,target))[0];
-          if(escape){c.x=escape.x;c.y=escape.y;}
-          if(c.yieldTime>2) {c.path=[];c.nextAction=null;c.action='watch';c.until=w.time+0.6;c.intent='Waiting for the other cat to pass';c.yieldTime=0;}
-        }
-        c.walkTime+=dt;
-      }
-      if(!c.path.length) {
+      const zoom=c.action==='zoom';
+      moveCat(w,c,dt);
+      if(moving(c)&&!c.path.length&&!c.passing) {
         if(zoom) {c.needs.energy=clamp(c.needs.energy-14);c.needs.fun=clamp(c.needs.fun+15);stay(w,c,'groom',7,'Recovering dignity after the zoomies','Nothing happened.');}
         else arrive(w,c);
       }
@@ -899,7 +999,7 @@ const RUG_PLACEMENT={x:620,y:540,width:300}; // Back edge clears sofa apron; fro
 function petPose(c,reduced){
   return ['pet','cuddle'].includes(c.action)?'pet':c.action==='sleep'?'sleep':c.action==='groom'?'groom':
     ['stalk','ready'].includes(c.action)?'stalk':c.action==='pounce'?'pounce':
-    ['walk','zoom'].includes(c.action)?(reduced||Math.floor(c.walkTime/.3)%2===0?'walk-a':'walk-b'):'idle';
+    ['walk','zoom'].includes(c.action)?(c.movingNow===false?'idle':reduced||Math.floor(c.walkTime/.3)%2===0?'walk-a':'walk-b'):'idle';
 }
 function plushPlacements(world,reduced){
   const list=[
@@ -1512,13 +1612,14 @@ function claimFishingReturnBonus(pond){
 
 window.houseEconomy??=(parent!==window&&parent.houseEconomy)||createHouseEconomy();
 // Deterministic, UI-free fishing prototype. Inputs are commands; time advances only in stepFishing.
+// Rarity adds resistance and a little distance while keeping each fight short.
 const FISH_SPECIES = Object.freeze([
-  { species: 'Minnow', rarity: 'common', safeLow: 18, safeHigh: 82, pull: 8, interval: 3.2, startDistance: 10 },
-  { species: 'Silver carp', rarity: 'uncommon', safeLow: 24, safeHigh: 76, pull: 15, interval: 2.4, startDistance: 14 },
-  { species: 'Moon koi', rarity: 'rare', safeLow: 30, safeHigh: 70, pull: 23, interval: 1.8, startDistance: 18 },
+  { species: 'Minnow', rarity: 'common', safeLow: 18, safeHigh: 82, pull: 8, interval: 3.2, startDistance: 4 },
+  { species: 'Silver carp', rarity: 'uncommon', safeLow: 24, safeHigh: 76, pull: 15, interval: 2.4, startDistance: 5 },
+  { species: 'Moon koi', rarity: 'rare', safeLow: 30, safeHigh: 70, pull: 23, interval: 1.8, startDistance: 6 },
 ]);
 const FISH_PULL_LEVELS = Object.freeze([{name:'Gentle',multiplier:.35},{name:'Steady',multiplier:.9},{name:'Strong',multiplier:1.6}]);
-const FISH_TUNING = Object.freeze({ fixedStep: .05, noticeRadius: .28, noticeCos: .5, approachSpeed: .09, nibbleTime: 1.1, biteWindow: 1.25, dangerGrace: .85, maxFrame: .25, releaseSpeed: 12, reelSpeed: 19, distanceSpeed: 1.4, pullbackSpeed: .06, maxDistanceMultiplier:1.3, pullWarning: .65 });
+const FISH_TUNING = Object.freeze({ fixedStep: .05, noticeRadius: .28, noticeCos: .5, approachSpeed: .18, nibbleTime: .65, biteWindow: 1.25, dangerGrace: .85, maxFrame: .25, releaseSpeed: 12, reelSpeed: 19, distanceSpeed: 2.4, pullbackSpeed: .06, maxDistanceMultiplier:1.3, pullWarning: .65 });
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function rng(state){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296;}
 function fish(id,species,x,y){return {id,...species,x,y,visible:true,available:true,phase:'swimming',roam:0};}
