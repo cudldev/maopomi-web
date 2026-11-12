@@ -1,10 +1,13 @@
-# Maopomi playtest
+# Maopomi kitten playtest
 
 Play at https://cudldev.github.io/maopomi-web/
 
-Public playable offline prototype. Wallet, garden, fishing, projects and handmade
-toy memories save locally in this browser. Use one writable tab. Roaming needs
-and temporary encounters restart when reopened; there are no accounts or sync.
-Source development is maintained separately. Code and artwork are not offered
-under an open-source license. The bundled Nunito font is licensed under OFL;
-its full license is embedded in index.html.
+One local kitten: feed, clean litter, play, switch lights, give medicine and
+gently teach habits. A short introduction and following house camera help you
+settle in. Progress stays in this browser, with no accounts or cloud sync.
+Old fishing/garden experiment saves remain untouched; this companion uses its
+own existing revisioned local save. Clearing site data removes browser progress.
+
+This is an early playable version, with reused provisional plush character art.
+Code and artwork are not offered under an open-source license. Bundled font
+licenses are included in licenses/. Source development is maintained separately.
